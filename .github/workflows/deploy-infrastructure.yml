@@ -1,0 +1,120 @@
+name: Deploy Infrastructure
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'base/**'
+      - 'vpc-networking/**'
+      - 'ecr/**'
+      - 's3-storage/**'
+      - 'security-groups/**'
+      - 'ecs-backend/**'
+      - 'cloudfront/**'
+  workflow_dispatch:
+    inputs:
+      apply_all:
+        description: 'Force apply all layers in sequence'
+        required: true
+        type: boolean
+        default: false
+
+jobs:
+  deploy:
+    name: Terraform Apply
+    runs-on: ubuntu-latest
+    env:
+      TF_VAR_database_url: ${{ secrets.DATABASE_URL }}
+      TF_VAR_jwt_secret: ${{ secrets.JWT_SECRET }}
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Detect Layer Changes
+        id: filter
+        uses: dorny/paths-filter@v3
+        with:
+          filters: |
+            base:
+              - 'base/**'
+            vpc_networking:
+              - 'vpc-networking/**'
+            ecr:
+              - 'ecr/**'
+            s3_storage:
+              - 's3-storage/**'
+            security_groups:
+              - 'security-groups/**'
+            ecs_backend:
+              - 'ecs-backend/**'
+            cloudfront:
+              - 'cloudfront/**'
+
+      - name: Set up Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: 1.9.5
+
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_REGION }}
+
+      # ─── Layer 0: Base ──────────────────────────────────────────────────
+      - name: Terraform Apply (Base)
+        if: steps.filter.outputs.base == 'true' || github.event.inputs.apply_all == 'true'
+        run: |
+          cd base
+          terraform init
+          terraform apply -auto-approve
+
+      # ─── Layer 1a: VPC Networking ───────────────────────────────────────
+      - name: Terraform Apply (VPC Networking)
+        if: steps.filter.outputs.vpc_networking == 'true' || github.event.inputs.apply_all == 'true'
+        run: |
+          cd vpc-networking
+          terraform init
+          terraform apply -auto-approve
+
+      # ─── Layer 1b: ECR ──────────────────────────────────────────────────
+      - name: Terraform Apply (ECR)
+        if: steps.filter.outputs.ecr == 'true' || github.event.inputs.apply_all == 'true'
+        run: |
+          cd ecr
+          terraform init
+          terraform apply -auto-approve
+
+      # ─── Layer 1c: S3 Storage ───────────────────────────────────────────
+      - name: Terraform Apply (S3 Storage)
+        if: steps.filter.outputs.s3_storage == 'true' || github.event.inputs.apply_all == 'true'
+        run: |
+          cd s3-storage
+          terraform init
+          terraform apply -auto-approve
+
+      # ─── Layer 2: Security Groups ───────────────────────────────────────
+      - name: Terraform Apply (Security Groups)
+        if: steps.filter.outputs.security_groups == 'true' || github.event.inputs.apply_all == 'true'
+        run: |
+          cd security-groups
+          terraform init
+          terraform apply -auto-approve
+
+      # ─── Layer 3: ECS Backend ───────────────────────────────────────────
+      - name: Terraform Apply (ECS Backend)
+        if: steps.filter.outputs.ecs_backend == 'true' || github.event.inputs.apply_all == 'true'
+        run: |
+          cd ecs-backend
+          terraform init
+          terraform apply -auto-approve
+
+      # ─── Layer 4: CloudFront ────────────────────────────────────────────
+      - name: Terraform Apply (CloudFront)
+        if: steps.filter.outputs.cloudfront == 'true' || github.event.inputs.apply_all == 'true'
+        run: |
+          cd cloudfront
+          terraform init
+          terraform apply -auto-approve
