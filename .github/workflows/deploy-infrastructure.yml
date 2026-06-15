@@ -1,59 +1,13 @@
 name: Deploy Infrastructure
 
 on:
-  push:
-    branches:
-      - main
-    paths:
-      - 'base/**'
-      - 'vpc-networking/**'
-      - 'ecr/**'
-      - 's3-storage/**'
-      - 'security-groups/**'
-      - 'ecs-backend/**'
-      - 'cloudfront/**'
   workflow_dispatch:
     inputs:
       apply_all:
         description: 'Force apply all layers in sequence'
         required: true
         type: boolean
-        default: false
-      base:
-        description: 'Run base layer'
-        required: false
-        type: boolean
-        default: false
-      vpc_networking:
-        description: 'Run VPC networking layer'
-        required: false
-        type: boolean
-        default: false
-      ecr:
-        description: 'Run ECR layer'
-        required: false
-        type: boolean
-        default: false
-      s3_storage:
-        description: 'Run S3 storage layer'
-        required: false
-        type: boolean
-        default: false
-      security_groups:
-        description: 'Run security groups layer'
-        required: false
-        type: boolean
-        default: false
-      ecs_backend:
-        description: 'Run ECS backend layer'
-        required: false
-        type: boolean
-        default: false
-      cloudfront:
-        description: 'Run CloudFront layer'
-        required: false
-        type: boolean
-        default: false
+        default: true
 
 jobs:
   deploy:
