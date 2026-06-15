@@ -19,5 +19,5 @@ variable "aws_region" {
 variable "github_repositories" {
   description = "List of GitHub repositories allowed to assume the IAM role via OIDC"
   type        = list(string)
-  default     = ["leymandudu/ProjectControls", "leymandudu/infrastructure"]
+  default     = ["leymandudu/ProjectControls", "leymandudu/infrastructure", "leymandudu/YusmojSolutions"]
 }
