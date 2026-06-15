@@ -1,0 +1,40 @@
+name: Deploy Yusmoj Solutions Website Infrastructure
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'yusmoj-solutions-website/**'
+
+jobs:
+  deploy:
+    name: Terraform Apply Yusmoj Solutions Website
+    runs-on: ubuntu-latest
+    permissions:
+      id-token: write
+      contents: read
+    env:
+      TF_VAR_project: yusmoj-controls
+      TF_VAR_environment: dev
+      TF_VAR_aws_region: ${{ secrets.AWS_REGION }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: 1.9.5
+
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_ROLE_TO_ASSUME }}
+          aws-region: ${{ secrets.AWS_REGION }}
+
+      - name: Terraform Apply
+        run: |
+          cd yusmoj-solutions-website
+          terraform init
+          terraform apply -auto-approve
