@@ -72,40 +72,14 @@ data "aws_caller_identity" "current" {}
 
 # ─── SSM Parameter Store — Secrets & Config ──────────────────────────
 
-resource "aws_ssm_parameter" "database_url" {
-  name        = "/${var.project}/${var.environment}/DATABASE_URL"
-  description = "Neon PostgreSQL connection string"
-  type        = "SecureString"
-  value       = var.database_url
-
-  tags = {
-    Name = "${var.project}-database-url"
-  }
+data "aws_ssm_parameter" "database_url" {
+  name            = "/${var.project}/${var.environment}/database_url"
+  with_decryption = true
 }
 
-resource "aws_ssm_parameter" "jwt_secret" {
-  name        = "/${var.project}/${var.environment}/JWT_SECRET"
-  description = "JWT signing secret"
-  type        = "SecureString"
-  value       = var.jwt_secret
-
-  tags = {
-    Name = "${var.project}-jwt-secret"
-  }
-}
-
-resource "aws_ssm_parameter" "node_env" {
-  name        = "/${var.project}/${var.environment}/NODE_ENV"
-  description = "Node environment"
-  type        = "String"
-  value       = "production"
-}
-
-resource "aws_ssm_parameter" "port" {
-  name        = "/${var.project}/${var.environment}/PORT"
-  description = "Application port"
-  type        = "String"
-  value       = "5000"
+data "aws_ssm_parameter" "jwt_secret" {
+  name            = "/${var.project}/${var.environment}/jwt_secret"
+  with_decryption = true
 }
 
 # ─── CloudWatch Log Group ────────────────────────────────────────────
@@ -249,11 +223,11 @@ resource "aws_ecs_task_definition" "backend" {
       secrets = [
         {
           name      = "DATABASE_URL"
-          valueFrom = aws_ssm_parameter.database_url.arn
+          valueFrom = data.aws_ssm_parameter.database_url.arn
         },
         {
           name      = "JWT_SECRET"
-          valueFrom = aws_ssm_parameter.jwt_secret.arn
+          valueFrom = data.aws_ssm_parameter.jwt_secret.arn
         }
       ]
 
