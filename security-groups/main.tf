@@ -26,24 +26,12 @@ provider "aws" {
   }
 }
 
-# ─── Remote State: VPC ────────────────────────────────────────────────
-
-# data "terraform_remote_state" "vpc" {
-#   backend = "s3"
-
-#   config = {
-#     bucket = "${var.project}-${var.environment}-terraform-state"
-#     key    = "vpc-networking/terraform.tfstate"
-#     region = var.aws_region
-#   }
-# }
-
 # ─── ALB Security Group ──────────────────────────────────────────────
 
 resource "aws_security_group" "alb" {
   name        = "${var.project}-${var.environment}-alb-sg"
   description = "Allow HTTP/HTTPS inbound to ALB"
-  vpc_id      = data.terraform_remote_state.vpc.outputs.vpc_id
+  vpc_id      = data.vpc.yusmoj_controls_dev_vpc.id
 
   tags = {
     Name = "${var.project}-${var.environment}-alb-sg"
@@ -85,7 +73,7 @@ resource "aws_security_group_rule" "alb_all_out" {
 resource "aws_security_group" "ecs" {
   name        = "${var.project}-${var.environment}-ecs-sg"
   description = "Allow inbound from ALB only on container port"
-  vpc_id      = data.terraform_remote_state.vpc.outputs.vpc_id
+  vpc_id      = data.vpc.yusmoj_controls_dev_vpc.id
 
   tags = {
     Name = "${var.project}-${var.environment}-ecs-sg"
