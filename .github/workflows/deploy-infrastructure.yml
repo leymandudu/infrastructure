@@ -19,6 +19,41 @@ on:
         required: true
         type: boolean
         default: false
+      base:
+        description: 'Run base layer'
+        required: false
+        type: boolean
+        default: false
+      vpc_networking:
+        description: 'Run VPC networking layer'
+        required: false
+        type: boolean
+        default: false
+      ecr:
+        description: 'Run ECR layer'
+        required: false
+        type: boolean
+        default: false
+      s3_storage:
+        description: 'Run S3 storage layer'
+        required: false
+        type: boolean
+        default: false
+      security_groups:
+        description: 'Run security groups layer'
+        required: false
+        type: boolean
+        default: false
+      ecs_backend:
+        description: 'Run ECS backend layer'
+        required: false
+        type: boolean
+        default: false
+      cloudfront:
+        description: 'Run CloudFront layer'
+        required: false
+        type: boolean
+        default: false
 
 jobs:
   deploy:
@@ -30,6 +65,9 @@ jobs:
     env:
       TF_VAR_database_url: ${{ secrets.DATABASE_URL }}
       TF_VAR_jwt_secret: ${{ secrets.JWT_SECRET }}
+      TF_VAR_project: yusmoj-controls
+      TF_VAR_environment: dev
+      TF_VAR_aws_region: ${{ secrets.AWS_REGION }}
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
@@ -67,7 +105,7 @@ jobs:
 
       # ─── Layer 0: Base ──────────────────────────────────────────────────
       - name: Terraform Apply (Base)
-        if: steps.filter.outputs.base == 'true' || github.event.inputs.apply_all == 'true'
+        if: steps.filter.outputs.base == 'true' || github.event.inputs.apply_all == true || github.event.inputs.base == true
         run: |
           cd base
           terraform init
@@ -75,7 +113,7 @@ jobs:
 
       # ─── Layer 1a: VPC Networking ───────────────────────────────────────
       - name: Terraform Apply (VPC Networking)
-        if: steps.filter.outputs.vpc_networking == 'true' || github.event.inputs.apply_all == 'true'
+        if: steps.filter.outputs.vpc_networking == 'true' || github.event.inputs.apply_all == true || github.event.inputs.vpc_networking == true
         run: |
           cd vpc-networking
           terraform init
@@ -83,7 +121,7 @@ jobs:
 
       # ─── Layer 1b: ECR ──────────────────────────────────────────────────
       - name: Terraform Apply (ECR)
-        if: steps.filter.outputs.ecr == 'true' || github.event.inputs.apply_all == 'true'
+        if: steps.filter.outputs.ecr == 'true' || github.event.inputs.apply_all == true || github.event.inputs.ecr == true
         run: |
           cd ecr
           terraform init
@@ -91,7 +129,7 @@ jobs:
 
       # ─── Layer 1c: S3 Storage ───────────────────────────────────────────
       - name: Terraform Apply (S3 Storage)
-        if: steps.filter.outputs.s3_storage == 'true' || github.event.inputs.apply_all == 'true'
+        if: steps.filter.outputs.s3_storage == 'true' || github.event.inputs.apply_all == true || github.event.inputs.s3_storage == true
         run: |
           cd s3-storage
           terraform init
@@ -99,7 +137,7 @@ jobs:
 
       # ─── Layer 2: Security Groups ───────────────────────────────────────
       - name: Terraform Apply (Security Groups)
-        if: steps.filter.outputs.security_groups == 'true' || github.event.inputs.apply_all == 'true'
+        if: steps.filter.outputs.security_groups == 'true' || github.event.inputs.apply_all == true || github.event.inputs.security_groups == true
         run: |
           cd security-groups
           terraform init
@@ -107,7 +145,7 @@ jobs:
 
       # ─── Layer 3: ECS Backend ───────────────────────────────────────────
       - name: Terraform Apply (ECS Backend)
-        if: steps.filter.outputs.ecs_backend == 'true' || github.event.inputs.apply_all == 'true'
+        if: steps.filter.outputs.ecs_backend == 'true' || github.event.inputs.apply_all == true || github.event.inputs.ecs_backend == true
         run: |
           cd ecs-backend
           terraform init
@@ -115,7 +153,7 @@ jobs:
 
       # ─── Layer 4: CloudFront ────────────────────────────────────────────
       - name: Terraform Apply (CloudFront)
-        if: steps.filter.outputs.cloudfront == 'true' || github.event.inputs.apply_all == 'true'
+        if: steps.filter.outputs.cloudfront == 'true' || github.event.inputs.apply_all == true || github.event.inputs.cloudfront == true
         run: |
           cd cloudfront
           terraform init

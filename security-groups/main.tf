@@ -28,15 +28,15 @@ provider "aws" {
 
 # ─── Remote State: VPC ────────────────────────────────────────────────
 
-data "terraform_remote_state" "vpc" {
-  backend = "s3"
+# data "terraform_remote_state" "vpc" {
+#   backend = "s3"
 
-  config = {
-    bucket = "${var.project}-${var.environment}-terraform-state"
-    key    = "vpc-networking/terraform.tfstate"
-    region = var.aws_region
-  }
-}
+#   config = {
+#     bucket = "${var.project}-${var.environment}-terraform-state"
+#     key    = "vpc-networking/terraform.tfstate"
+#     region = var.aws_region
+#   }
+# }
 
 # ─── ALB Security Group ──────────────────────────────────────────────
 
