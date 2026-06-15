@@ -37,6 +37,10 @@ data "terraform_remote_state" "vpc" {
   }
 }
 
+data "aws_vpc" "selected" {
+  id = var.vpc_id
+}
+
 data "terraform_remote_state" "ecr" {
   backend = "s3"
   config = {
@@ -314,7 +318,7 @@ resource "aws_lb_target_group" "backend" {
   name        = "${var.project}-${var.environment}-tg"
   port        = 5000
   protocol    = "HTTP"
-  vpc_id      = data.vpc.yusmoj_controls_dev_vpc.id
+  vpc_id      = data.aws_vpc.selected.id
   target_type = "ip"
 
   health_check {

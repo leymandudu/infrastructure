@@ -27,3 +27,9 @@ variable "jwt_secret" {
   type        = string
   sensitive   = true
 }
+
+variable "vpc_id" {
+  description = "VPC ID to use for resources"
+  type        = string
+  default     = "vpc-03957e880e32fb2ad"
+}

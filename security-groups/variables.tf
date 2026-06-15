@@ -15,3 +15,9 @@ variable "aws_region" {
   type        = string
   default     = "us-east-1"
 }
+
+variable "vpc_id" {
+  description = "VPC ID to use for security groups"
+  type        = string
+  default     = "vpc-03957e880e32fb2ad"
+}
