@@ -16,17 +16,6 @@ variable "aws_region" {
   default     = "us-east-1"
 }
 
-variable "database_url" {
-  description = "Neon PostgreSQL connection string"
-  type        = string
-  sensitive   = true
-}
-
-variable "jwt_secret" {
-  description = "JWT signing secret"
-  type        = string
-  sensitive   = true
-}
 
 variable "vpc_id" {
   description = "VPC ID to use for resources"

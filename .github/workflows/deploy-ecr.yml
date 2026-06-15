@@ -1,12 +1,7 @@
 name: Deploy ECR
 
 on:
-  push:
-    branches:
-      - main
-    paths:
-      - 'ecr/**'
-  workflow_dispatch: {}
+  workflow_dispatch:
 
 jobs:
   deploy:
@@ -16,8 +11,6 @@ jobs:
       id-token: write
       contents: read
     env:
-      TF_VAR_database_url: ${{ secrets.DATABASE_URL }}
-      TF_VAR_jwt_secret: ${{ secrets.JWT_SECRET }}
       TF_VAR_project: yusmoj-controls
       TF_VAR_environment: dev
       TF_VAR_aws_region: ${{ secrets.AWS_REGION }}
