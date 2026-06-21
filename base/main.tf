@@ -167,7 +167,7 @@ resource "aws_iam_role_policy" "github_actions_least_privilege" {
           "lambda:CreateFunction", "lambda:UpdateFunctionCode",
           "lambda:UpdateFunctionConfiguration", "lambda:GetFunction",
           "lambda:AddPermission", "lambda:RemovePermission",
-          "lambda:GetPolicy",
+          "lambda:GetPolicy", "lambda:ListVersionsByFunction",
           "apigateway:*"
         ]
         Resource = "*"
