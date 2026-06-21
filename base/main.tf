@@ -143,7 +143,13 @@ resource "aws_iam_role_policy" "github_actions_least_privilege" {
           "s3:GetObject", "s3:PutObject", "s3:DeleteObject",
           "s3:ListBucket", "s3:GetBucketVersioning",
           "s3:GetEncryptionConfiguration", "s3:GetBucketPolicy",
-          "s3:PutBucketPolicy"
+          "s3:PutBucketPolicy", "s3:GetBucketAcl", "s3:PutBucketAcl",
+          "s3:CreateBucket", "s3:DeleteBucket", "s3:GetBucketWebsite",
+          "s3:PutBucketWebsite", "s3:DeleteBucketWebsite",
+          "s3:GetBucketPublicAccessBlock", "s3:PutBucketPublicAccessBlock",
+          "s3:GetBucketCors", "s3:PutBucketCors", "s3:GetBucketRequestPayment",
+          "s3:GetBucketLogging", "s3:GetLifecycleConfiguration",
+          "s3:PutLifecycleConfiguration"
         ]
         Resource = "*"
       },
@@ -156,7 +162,12 @@ resource "aws_iam_role_policy" "github_actions_least_privilege" {
           "cloudfront:ListDistributions", "cloudfront:CreateInvalidation",
           "cloudfront:GetInvalidation", "cloudfront:CreateOriginAccessControl",
           "cloudfront:GetOriginAccessControl", "cloudfront:CreateResponseHeadersPolicy",
-          "cloudfront:GetResponseHeadersPolicy", "cloudfront:UpdateResponseHeadersPolicy"
+          "cloudfront:GetResponseHeadersPolicy", "cloudfront:UpdateResponseHeadersPolicy",
+          "cloudfront:ListCachePolicies", "cloudfront:GetCachePolicy",
+          "cloudfront:ListTagsForResource", "cloudfront:TagResource", "cloudfront:UntagResource",
+          "cloudfront:DeleteDistribution", "cloudfront:DeleteOriginAccessControl",
+          "cloudfront:DeleteResponseHeadersPolicy", "cloudfront:CreateCachePolicy",
+          "cloudfront:UpdateCachePolicy", "cloudfront:DeleteCachePolicy"
         ]
         Resource = "*"
       },
