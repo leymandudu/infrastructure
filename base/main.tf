@@ -168,8 +168,8 @@ resource "aws_iam_role_policy" "github_actions_least_privilege" {
           "lambda:UpdateFunctionConfiguration", "lambda:GetFunction",
           "lambda:AddPermission", "lambda:RemovePermission",
           "lambda:GetPolicy", "lambda:ListVersionsByFunction",
-          "lambda:GetFunctionCodeSigningConfig",
-          "apigateway:*"
+          "lambda:GetFunctionCodeSigningConfig", "lambda:DeleteFunction",
+          "apigateway:*", "apigatewayv2:*"
         ]
         Resource = "*"
       },
@@ -178,7 +178,7 @@ resource "aws_iam_role_policy" "github_actions_least_privilege" {
         Effect = "Allow"
         Action = [
           "ses:VerifyEmailIdentity", "ses:GetIdentityVerificationAttributes",
-          "ses:DeleteIdentity",
+          "ses:DeleteIdentity", "ses:GetEmailIdentity", "ses:ListEmailIdentities",
           "acm:RequestCertificate", "acm:DescribeCertificate",
           "acm:ListCertificates", "acm:DeleteCertificate"
         ]
