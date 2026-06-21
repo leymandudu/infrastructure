@@ -5,7 +5,9 @@ import re
 import time
 from collections import defaultdict
 
-ses = boto3.client('ses', region_name=os.environ['AWS_REGION'])
+# Initialize globals
+AWS_REGION = None
+ses = None
 
 CONTACT_EMAIL = os.environ['CONTACT_EMAIL']
 ALLOWED_ORIGIN = os.environ['ALLOWED_ORIGIN']
@@ -48,6 +50,15 @@ def is_valid_email(email: str) -> bool:
     return bool(re.match(r'^[^@\s]+@[^@\s]+\.[^@\s]+$', email))
 
 def handler(event, context):
+    # Initialize region and SES client on first invocation
+    global AWS_REGION, ses
+    if AWS_REGION is None:
+        # Extract AWS region from Lambda context ARN
+        # ARN format: arn:aws:lambda:us-east-1:ACCOUNT:function:FUNCTION_NAME
+        arn_parts = context.invoked_function_arn.split(':')
+        AWS_REGION = arn_parts[3]
+        ses = boto3.client('ses', region_name=AWS_REGION)
+    
     # Handle CORS preflight
     if event.get('requestContext', {}).get('http', {}).get('method') == 'OPTIONS':
         return {'statusCode': 200, 'headers': CORS_HEADERS, 'body': ''}

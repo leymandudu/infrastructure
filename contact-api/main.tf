@@ -97,7 +97,6 @@ resource "aws_lambda_function" "contact" {
 
   environment {
     variables = {
-      AWS_REGION     = var.aws_region
       CONTACT_EMAIL  = var.contact_email
       ALLOWED_ORIGIN = var.allowed_origin
     }
