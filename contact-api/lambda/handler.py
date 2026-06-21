@@ -96,7 +96,24 @@ Message:
 This message was sent via the Yusmoj Solutions website contact form.
 """
 
+    confirmation_email_body = f"""
+Dear {first_name} {last_name},
+
+Thank you for reaching out to Yusmoj Solutions! We have received your message and will get back to you as soon as possible.
+
+Your message details:
+Subject: {subject}
+
+---
+This is an automated confirmation email. Please do not reply to this email.
+If you have any urgent matters, please contact us directly at info@yusmojsolutions.com
+
+Best regards,
+Yusmoj Solutions Team
+"""
+
     try:
+        # Send email to admin
         ses.send_email(
             Source=CONTACT_EMAIL,
             Destination={'ToAddresses': [CONTACT_EMAIL]},
@@ -104,6 +121,16 @@ This message was sent via the Yusmoj Solutions website contact form.
             Message={
                 'Subject': {'Data': f'[Yusmoj Solutions] {subject}'},
                 'Body':    {'Text': {'Data': email_body}},
+            },
+        )
+        
+        # Send confirmation email to sender
+        ses.send_email(
+            Source=CONTACT_EMAIL,
+            Destination={'ToAddresses': [email]},
+            Message={
+                'Subject': {'Data': 'We received your message - Yusmoj Solutions'},
+                'Body':    {'Text': {'Data': confirmation_email_body}},
             },
         )
     except ses.exceptions.MessageRejected:
