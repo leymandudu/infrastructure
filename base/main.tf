@@ -213,7 +213,8 @@ resource "aws_iam_role_policy" "github_actions_least_privilege" {
         Action = [
           "logs:CreateLogGroup", "logs:CreateLogStream",
           "logs:PutLogEvents", "logs:DescribeLogGroups",
-          "logs:DeleteLogGroup"
+          "logs:DeleteLogGroup", "logs:ListTagsForResource",
+          "logs:TagResource", "logs:UntagResource"
         ]
         Resource = "*"
       },
