@@ -15,3 +15,9 @@ variable "aws_region" {
   type        = string
   default     = "us-east-1"
 }
+
+variable "acm_certificate_arn" {
+  description = "ARN of the ACM certificate for yusmojsolutions.com (must be in us-east-1)"
+  type        = string
+  default     = ""
+}

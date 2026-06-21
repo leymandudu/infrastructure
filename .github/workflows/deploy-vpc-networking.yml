@@ -8,6 +8,10 @@ on:
       - 'vpc-networking/**'
   workflow_dispatch: {}
 
+concurrency:
+  group: terraform-vpc-networking
+  cancel-in-progress: false
+
 jobs:
   deploy:
     name: Terraform Apply VPC Networking

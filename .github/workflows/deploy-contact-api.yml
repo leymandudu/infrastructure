@@ -1,20 +1,19 @@
-name: Deploy Security Groups
+name: Deploy Contact API
 
 on:
   push:
     branches:
       - main
     paths:
-      - 'security-groups/**'
-  workflow_dispatch: {}
+      - 'contact-api/**'
 
 concurrency:
-  group: terraform-security-groups
+  group: terraform-contact-api
   cancel-in-progress: false
 
 jobs:
   deploy:
-    name: Terraform Apply Security Groups
+    name: Terraform Apply Contact API
     runs-on: ubuntu-latest
     permissions:
       id-token: write
@@ -23,6 +22,8 @@ jobs:
       TF_VAR_project: yusmoj-controls
       TF_VAR_environment: dev
       TF_VAR_aws_region: ${{ secrets.AWS_REGION }}
+      TF_VAR_contact_email: info@yusmojsolutions.com
+      TF_VAR_allowed_origin: https://www.yusmojsolutions.com
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -40,6 +41,12 @@ jobs:
 
       - name: Terraform Apply
         run: |
-          cd security-groups
+          cd contact-api
           terraform init
           terraform apply -auto-approve
+
+      - name: Print API Endpoint
+        run: |
+          cd contact-api
+          echo "Contact API endpoint:"
+          terraform output api_endpoint

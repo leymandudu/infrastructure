@@ -3,6 +3,10 @@ name: Deploy ECR
 on:
   workflow_dispatch:
 
+concurrency:
+  group: terraform-ecr
+  cancel-in-progress: false
+
 jobs:
   deploy:
     name: Terraform Apply ECR

@@ -109,15 +109,54 @@ data "aws_cloudfront_cache_policy" "caching_optimized" {
   name = "Managed-CachingOptimized"
 }
 
+# ─── Security Response Headers Policy ───────────────────────────────
+
+resource "aws_cloudfront_response_headers_policy" "security" {
+  name = "yusmoj-solutions-security-headers-${var.environment}"
+
+  security_headers_config {
+    strict_transport_security {
+      access_control_max_age_sec = 31536000
+      include_subdomains         = true
+      preload                    = true
+      override                   = true
+    }
+    content_type_options {
+      override = true
+    }
+    frame_options {
+      frame_option = "DENY"
+      override     = true
+    }
+    referrer_policy {
+      referrer_policy = "strict-origin-when-cross-origin"
+      override        = true
+    }
+    xss_protection {
+      mode_block = true
+      protection = true
+      override   = true
+    }
+  }
+
+  custom_headers_config {
+    items {
+      header   = "Permissions-Policy"
+      value    = "camera=(), microphone=(), geolocation=()"
+      override = true
+    }
+  }
+}
+
 # ─── CloudFront Distribution ─────────────────────────────────────────
 
 resource "aws_cloudfront_distribution" "website" {
   enabled             = true
   is_ipv6_enabled     = true
-  comment             = "yusmoj-solutions ${var.environment} — www.yusmojsolutions.com"
+  comment             = "yusmoj-solutions ${var.environment} - www.yusmojsolutions.com"
   default_root_object = "index.html"
   price_class         = "PriceClass_100"
-  aliases             = var.environment == "prod" ? ["www.yusmojsolutions.com", "yusmojsolutions.com"] : []
+  aliases             = var.acm_certificate_arn != "" ? ["www.yusmojsolutions.com", "yusmojsolutions.com"] : []
 
   origin {
     domain_name              = aws_s3_bucket.website.bucket_regional_domain_name
@@ -126,12 +165,13 @@ resource "aws_cloudfront_distribution" "website" {
   }
 
   default_cache_behavior {
-    allowed_methods        = ["GET", "HEAD", "OPTIONS"]
-    cached_methods         = ["GET", "HEAD"]
-    target_origin_id       = "s3-yusmoj-solutions-website"
-    viewer_protocol_policy = "redirect-to-https"
-    compress               = true
-    cache_policy_id        = data.aws_cloudfront_cache_policy.caching_optimized.id
+    allowed_methods              = ["GET", "HEAD", "OPTIONS"]
+    cached_methods               = ["GET", "HEAD"]
+    target_origin_id             = "s3-yusmoj-solutions-website"
+    viewer_protocol_policy       = "redirect-to-https"
+    compress                     = true
+    cache_policy_id              = data.aws_cloudfront_cache_policy.caching_optimized.id
+    response_headers_policy_id   = aws_cloudfront_response_headers_policy.security.id
   }
 
   # SPA routing — redirect 403/404 back to index.html for client-side routing
@@ -156,7 +196,10 @@ resource "aws_cloudfront_distribution" "website" {
   }
 
   viewer_certificate {
-    cloudfront_default_certificate = true
+    acm_certificate_arn            = var.acm_certificate_arn != "" ? var.acm_certificate_arn : null
+    cloudfront_default_certificate = var.acm_certificate_arn == ""
+    ssl_support_method             = var.acm_certificate_arn != "" ? "sni-only" : null
+    minimum_protocol_version       = var.acm_certificate_arn != "" ? "TLSv1.2_2021" : null
   }
 
   tags = {

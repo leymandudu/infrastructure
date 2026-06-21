@@ -8,6 +8,10 @@ on:
       - 'base/**'
   workflow_dispatch: {}
 
+concurrency:
+  group: terraform-base
+  cancel-in-progress: false
+
 jobs:
   deploy:
     name: Terraform Apply Base

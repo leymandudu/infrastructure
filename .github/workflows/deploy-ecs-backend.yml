@@ -8,6 +8,10 @@ on:
       - 'ecs-backend/**'
   workflow_dispatch: {}
 
+concurrency:
+  group: terraform-ecs-backend
+  cancel-in-progress: false
+
 jobs:
   deploy:
     name: Terraform Apply ECS Backend
@@ -19,6 +23,7 @@ jobs:
       TF_VAR_project: yusmoj-controls
       TF_VAR_environment: dev
       TF_VAR_aws_region: ${{ secrets.AWS_REGION }}
+      TF_VAR_acm_certificate_arn: ${{ secrets.ACM_CERTIFICATE_ARN }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v4

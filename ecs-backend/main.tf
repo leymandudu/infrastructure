@@ -283,6 +283,9 @@ resource "aws_lb" "main" {
   security_groups    = [data.terraform_remote_state.security_groups.outputs.alb_sg_id]
   subnets            = data.terraform_remote_state.vpc.outputs.public_subnet_ids
 
+  # Drop invalid HTTP headers to prevent header injection attacks
+  drop_invalid_header_fields = true
+
   tags = {
     Name = "${var.project}-${var.environment}-alb"
   }
@@ -311,10 +314,29 @@ resource "aws_lb_target_group" "backend" {
   }
 }
 
+# Redirect all HTTP traffic to HTTPS
 resource "aws_lb_listener" "http" {
   load_balancer_arn = aws_lb.main.arn
   port              = 80
   protocol          = "HTTP"
+
+  default_action {
+    type = "redirect"
+    redirect {
+      port        = "443"
+      protocol    = "HTTPS"
+      status_code = "HTTP_301"
+    }
+  }
+}
+
+# HTTPS listener — forwards to ECS target group
+resource "aws_lb_listener" "https" {
+  load_balancer_arn = aws_lb.main.arn
+  port              = 443
+  protocol          = "HTTPS"
+  ssl_policy        = "ELBSecurityPolicy-TLS13-1-2-2021-06"
+  certificate_arn   = var.acm_certificate_arn
 
   default_action {
     type             = "forward"
@@ -347,7 +369,7 @@ resource "aws_ecs_service" "backend" {
   deployment_maximum_percent         = 200
   health_check_grace_period_seconds  = 120
 
-  depends_on = [aws_lb_listener.http]
+  depends_on = [aws_lb_listener.https]
 
   lifecycle {
     ignore_changes = [task_definition]

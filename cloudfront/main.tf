@@ -186,10 +186,13 @@ resource "aws_cloudfront_distribution" "main" {
     }
   }
 
-  # ── Default CloudFront certificate (*.cloudfront.net) ───────────
-  # Replace with ACM certificate when custom domain is configured
+  aliases = var.acm_certificate_arn != "" ? ["controls.yusmojsolutions.com"] : []
+
   viewer_certificate {
-    cloudfront_default_certificate = true
+    acm_certificate_arn      = var.acm_certificate_arn != "" ? var.acm_certificate_arn : null
+    cloudfront_default_certificate = var.acm_certificate_arn == ""
+    ssl_support_method       = var.acm_certificate_arn != "" ? "sni-only" : null
+    minimum_protocol_version = var.acm_certificate_arn != "" ? "TLSv1.2_2021" : null
   }
 
   tags = {

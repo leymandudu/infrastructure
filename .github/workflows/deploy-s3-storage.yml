@@ -8,6 +8,10 @@ on:
       - 's3-storage/**'
   workflow_dispatch: {}
 
+concurrency:
+  group: terraform-s3-storage
+  cancel-in-progress: false
+
 jobs:
   deploy:
     name: Terraform Apply S3 Storage

@@ -22,3 +22,9 @@ variable "vpc_id" {
   type        = string
   default     = "vpc-03957e880e32fb2ad"
 }
+
+variable "acm_certificate_arn" {
+  description = "ARN of ACM certificate for HTTPS on the ALB (must cover controls.yusmojsolutions.com)"
+  type        = string
+  default     = ""
+}

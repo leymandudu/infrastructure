@@ -1,3 +1,9 @@
+variable "aws_region" {
+  description = "AWS region"
+  type        = string
+  default     = "us-east-1"
+}
+
 variable "project" {
   description = "Project name"
   type        = string
@@ -10,14 +16,7 @@ variable "environment" {
   default     = "dev"
 }
 
-variable "aws_region" {
-  description = "AWS region"
-  type        = string
-  default     = "us-east-1"
-}
-
 variable "acm_certificate_arn" {
-  description = "ARN of the ACM certificate for controls.yusmojsolutions.com (must be in us-east-1)"
+  description = "ARN of the ACM certificate covering yusmojsolutions.com, www.yusmojsolutions.com, controls.yusmojsolutions.com"
   type        = string
-  default     = ""
 }

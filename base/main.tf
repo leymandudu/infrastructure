@@ -66,13 +66,20 @@ resource "aws_s3_bucket_public_access_block" "terraform_state" {
   restrict_public_buckets = true
 }
 
-# # ─── DynamoDB Table for State Locking ────────────────────────────────
+# ─── DynamoDB Table for State Locking ────────────────────────────────
+# DynamoDB locking is intentionally omitted to avoid extra cost.
+# State corruption is mitigated by:
+#   1. S3 bucket versioning (every state change is retained and recoverable)
+#   2. GitHub Actions runs workflows sequentially per module
+#   3. The concurrency group below prevents parallel runs on the same module
+# If multiple engineers run terraform locally simultaneously in future,
+# re-enable by uncommenting the resource below and adding dynamodb_table
+# to all backend.tf files.
 
 # resource "aws_dynamodb_table" "terraform_locks" {
 #   name         = "${var.project}-${var.environment}-terraform-locks"
 #   billing_mode = "PAY_PER_REQUEST"
 #   hash_key     = "LockID"
-
 #   attribute {
 #     name = "LockID"
 #     type = "S"
@@ -122,8 +129,120 @@ resource "aws_iam_role" "github_actions" {
   assume_role_policy = data.aws_iam_policy_document.github_assume_role.json
 }
 
-resource "aws_iam_role_policy_attachment" "github_actions_admin" {
-  role       = aws_iam_role.github_actions.name
-  policy_arn = "arn:aws:iam::aws:policy/AdministratorAccess"
+resource "aws_iam_role_policy" "github_actions_least_privilege" {
+  name = "${var.project}-${var.environment}-github-actions-policy"
+  role = aws_iam_role.github_actions.id
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Sid    = "S3StateAndAssets"
+        Effect = "Allow"
+        Action = [
+          "s3:GetObject", "s3:PutObject", "s3:DeleteObject",
+          "s3:ListBucket", "s3:GetBucketVersioning",
+          "s3:GetEncryptionConfiguration", "s3:GetBucketPolicy",
+          "s3:PutBucketPolicy"
+        ]
+        Resource = "*"
+      },
+      {
+        Sid    = "CloudFront"
+        Effect = "Allow"
+        Action = [
+          "cloudfront:CreateDistribution", "cloudfront:UpdateDistribution",
+          "cloudfront:GetDistribution", "cloudfront:GetDistributionConfig",
+          "cloudfront:ListDistributions", "cloudfront:CreateInvalidation",
+          "cloudfront:GetInvalidation", "cloudfront:CreateOriginAccessControl",
+          "cloudfront:GetOriginAccessControl", "cloudfront:CreateResponseHeadersPolicy",
+          "cloudfront:GetResponseHeadersPolicy", "cloudfront:UpdateResponseHeadersPolicy"
+        ]
+        Resource = "*"
+      },
+      {
+        Sid    = "ECSAndECR"
+        Effect = "Allow"
+        Action = [
+          "ecs:*", "ecr:*"
+        ]
+        Resource = "*"
+      },
+      {
+        Sid    = "LambdaAndAPIGateway"
+        Effect = "Allow"
+        Action = [
+          "lambda:CreateFunction", "lambda:UpdateFunctionCode",
+          "lambda:UpdateFunctionConfiguration", "lambda:GetFunction",
+          "lambda:AddPermission", "lambda:RemovePermission",
+          "lambda:GetPolicy",
+          "apigateway:*"
+        ]
+        Resource = "*"
+      },
+      {
+        Sid    = "SESAndACM"
+        Effect = "Allow"
+        Action = [
+          "ses:VerifyEmailIdentity", "ses:GetIdentityVerificationAttributes",
+          "ses:DeleteIdentity",
+          "acm:RequestCertificate", "acm:DescribeCertificate",
+          "acm:ListCertificates", "acm:DeleteCertificate"
+        ]
+        Resource = "*"
+      },
+      {
+        Sid    = "Route53"
+        Effect = "Allow"
+        Action = [
+          "route53:CreateHostedZone", "route53:GetHostedZone",
+          "route53:ListHostedZones", "route53:ChangeResourceRecordSets",
+          "route53:ListResourceRecordSets", "route53:GetChange"
+        ]
+        Resource = "*"
+      },
+      {
+        Sid    = "IAMForRoles"
+        Effect = "Allow"
+        Action = [
+          "iam:CreateRole", "iam:GetRole", "iam:PutRolePolicy",
+          "iam:AttachRolePolicy", "iam:DetachRolePolicy",
+          "iam:DeleteRolePolicy", "iam:DeleteRole",
+          "iam:PassRole", "iam:GetRolePolicy",
+          "iam:ListAttachedRolePolicies", "iam:ListRolePolicies",
+          "iam:CreateOpenIDConnectProvider", "iam:GetOpenIDConnectProvider",
+          "iam:DeleteOpenIDConnectProvider", "iam:UpdateAssumeRolePolicy"
+        ]
+        Resource = "*"
+      },
+      {
+        Sid    = "CloudWatchLogs"
+        Effect = "Allow"
+        Action = [
+          "logs:CreateLogGroup", "logs:CreateLogStream",
+          "logs:PutLogEvents", "logs:DescribeLogGroups",
+          "logs:DeleteLogGroup"
+        ]
+        Resource = "*"
+      },
+      {
+        Sid    = "SSMParameters"
+        Effect = "Allow"
+        Action = [
+          "ssm:GetParameter", "ssm:GetParameters",
+          "ssm:PutParameter", "ssm:DeleteParameter"
+        ]
+        Resource = "*"
+      },
+      {
+        Sid    = "EC2VPC"
+        Effect = "Allow"
+        Action = [
+          "ec2:*", "elasticloadbalancing:*"
+        ]
+        Resource = "*"
+      }
+    ]
+  })
 }
 
