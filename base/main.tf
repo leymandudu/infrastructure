@@ -149,7 +149,10 @@ resource "aws_iam_role_policy" "github_actions_least_privilege" {
           "s3:GetBucketPublicAccessBlock", "s3:PutBucketPublicAccessBlock",
           "s3:GetBucketCors", "s3:PutBucketCors", "s3:GetBucketRequestPayment",
           "s3:GetBucketLogging", "s3:GetLifecycleConfiguration",
-          "s3:PutLifecycleConfiguration"
+          "s3:PutLifecycleConfiguration", "s3:GetAccelerateConfiguration",
+          "s3:PutBucketVersioning", "s3:GetBucketObjectLockConfiguration",
+          "s3:GetBucketTagging", "s3:PutBucketTagging", "s3:GetBucketOwnershipControls",
+          "s3:PutBucketOwnershipControls", "s3:PutBucketAcl"
         ]
         Resource = "*"
       },
