@@ -1,9 +1,14 @@
 import json
 import boto3
+import botocore.exceptions
 import os
 import re
 import time
+import logging
 from collections import defaultdict
+
+logger = logging.getLogger()
+logger.setLevel(logging.INFO)
 
 # Initialize globals
 AWS_REGION = None
@@ -123,8 +128,8 @@ Best regards,
 Yusmoj Solutions Team
 """
 
+    # ── Send notification to admin (mandatory) ───────────────────────────────
     try:
-        # Send email to admin
         ses.send_email(
             Source=CONTACT_EMAIL,
             Destination={'ToAddresses': [CONTACT_EMAIL]},
@@ -134,8 +139,19 @@ Yusmoj Solutions Team
                 'Body':    {'Text': {'Data': email_body}},
             },
         )
-        
-        # Send confirmation email to sender
+        logger.info('Admin notification sent successfully to %s', CONTACT_EMAIL)
+    except botocore.exceptions.ClientError as exc:
+        error_code = exc.response['Error']['Code']
+        error_msg  = exc.response['Error']['Message']
+        logger.error('SES admin notification failed — %s: %s', error_code, error_msg)
+        return {
+            'statusCode': 500,
+            'headers': CORS_HEADERS,
+            'body': json.dumps({'error': 'Failed to send email. Please try again or email us directly at info@yusmojsolutions.com'}),
+        }
+
+    # ── Send confirmation to submitter (best-effort; never blocks success) ───
+    try:
         ses.send_email(
             Source=CONTACT_EMAIL,
             Destination={'ToAddresses': [email]},
@@ -144,8 +160,16 @@ Yusmoj Solutions Team
                 'Body':    {'Text': {'Data': confirmation_email_body}},
             },
         )
-    except ses.exceptions.MessageRejected:
-        return {'statusCode': 500, 'headers': CORS_HEADERS, 'body': json.dumps({'error': 'Failed to send email'})}
+        logger.info('Confirmation email sent to %s', email)
+    except botocore.exceptions.ClientError as exc:
+        # Log but do NOT fail the request — the admin was already notified.
+        # Common in SES sandbox mode where the submitter's address is unverified.
+        error_code = exc.response['Error']['Code']
+        error_msg  = exc.response['Error']['Message']
+        logger.warning(
+            'Confirmation email to %s failed (non-fatal) — %s: %s',
+            email, error_code, error_msg,
+        )
 
     return {
         'statusCode': 200,
