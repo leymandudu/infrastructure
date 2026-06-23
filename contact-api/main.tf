@@ -33,6 +33,10 @@ provider "aws" {
 
 data "aws_caller_identity" "current" {}
 
+locals {
+  allowed_origins = length(var.allowed_origins) > 0 ? var.allowed_origins : [var.allowed_origin]
+}
+
 # ─── SES Email Identity ───────────────────────────────────────────────
 # NOTE: After first apply, go to SES Console and verify info@yusmojsolutions.com
 # Once the domain is verified in Route 53, domain-level verification is preferred.
@@ -99,6 +103,7 @@ resource "aws_lambda_function" "contact" {
     variables = {
       CONTACT_EMAIL  = var.contact_email
       ALLOWED_ORIGIN = var.allowed_origin
+      ALLOWED_ORIGINS = join(",", local.allowed_origins)
     }
   }
 }
@@ -110,7 +115,7 @@ resource "aws_apigatewayv2_api" "contact" {
   protocol_type = "HTTP"
 
   cors_configuration {
-    allow_origins = [var.allowed_origin]
+    allow_origins = local.allowed_origins
     allow_methods = ["POST", "OPTIONS"]
     allow_headers = ["Content-Type"]
     max_age       = 300

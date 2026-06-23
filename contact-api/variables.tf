@@ -24,3 +24,9 @@ variable "allowed_origin" {
   type        = string
   default     = "https://www.yusmojsolutions.com"
 }
+
+variable "allowed_origins" {
+  description = "Optional list of CORS allowed origins; when set, this overrides allowed_origin"
+  type        = list(string)
+  default     = []
+}
