@@ -45,7 +45,7 @@ def get_cors_headers(event) -> dict:
 # ─── In-memory rate limiter ───────────────────────────────────────────────────
 # Allows MAX_REQUESTS per IP within WINDOW_SECONDS.
 # Stored in the Lambda execution context — persists across warm invocations.
-MAX_REQUESTS   = 3
+MAX_REQUESTS   = 15
 WINDOW_SECONDS = 60
 
 _rate_store: dict = defaultdict(list)
